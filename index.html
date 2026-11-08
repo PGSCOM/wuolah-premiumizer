@@ -5,189 +5,191 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Wuolah sin anuncios</title>
 <meta name="description" content="Quita los anuncios de los PDF gratuitos de Wuolah. Todo ocurre en tu navegador.">
-<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=tanker@400&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Montserrat:wght@400;700&display=swap">
 <style>
+  /* Colores y tipografía de pgscom.es */
   :root {
-    --ground: #101a14;
-    --ground-lit: #1b2b21;
-    --ink: #e6ece1;
-    --muted: #93a58d;
-    --paper: #eef1e8;
-    --paper-ink: #14201a;
-    --paper-muted: #5d6e5f;
-    --press: #2b4a37;
-    --display: "Tanker", "Arial Black", Impact, sans-serif;
+    --bg: #05070d;
+    --azul: #93c5fd;
+    --texto: rgba(255, 255, 255, 0.85);
+    --tenue: rgba(255, 255, 255, 0.6);
+    --borde: rgba(255, 255, 255, 0.15);
+    --ui: 'Chakra Petch', 'Montserrat', sans-serif;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; min-height: 100%; }
   body {
     min-height: 100vh;
     min-height: 100dvh;
-    color: var(--ink);
-    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
-    background-color: var(--ground);
-    /* luz rasante desde arriba a la izquierda + grano para que no haga bandas */
+    color: var(--texto);
+    font: 16px/1.6 'Montserrat', sans-serif;
+    background-color: var(--bg);
     background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-      linear-gradient(160deg, var(--ground-lit) 0%, var(--ground) 55%);
+      radial-gradient(60vw 45vh at 78% 8%, rgba(37, 99, 235, 0.16), transparent 60%),
+      radial-gradient(50vw 40vh at 12% 92%, rgba(54, 126, 120, 0.14), transparent 60%);
+    background-attachment: fixed;
     display: grid;
     grid-template-rows: 1fr auto;
     justify-items: center;
     padding: 0 16px;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
   main {
     width: 100%;
-    max-width: 980px;
+    max-width: 760px;
     display: grid;
     align-content: center;
     justify-items: center;
-    gap: clamp(24px, 4vh, 40px);
-    padding: clamp(24px, 5vh, 56px) 0 20px;
+    gap: clamp(28px, 5vh, 44px);
+    padding: clamp(32px, 7vh, 72px) 0 24px;
+    text-align: center;
   }
   h1 {
-    margin: 0;
-    font: 400 clamp(40px, 7.4vw, 92px)/0.95 var(--display);
-    letter-spacing: 0.01em;
-    text-align: center;
-    text-wrap: balance;
+    margin: 0 0 14px;
+    /* padding: background-clip recorta en la caja de línea */
+    padding: 0.08em 0.04em;
+    font: 700 clamp(2.4rem, 7vw, 4.6rem)/1.1 var(--ui);
+    letter-spacing: -0.01em;
+    /* el degradado cian de pgscom: empieza y acaba en el mismo azul, sin salto en el bucle */
+    background: linear-gradient(135deg, #0098ff 0%, #00b4d8 25%, #48cae4 50%, #caf0f8 75%, #0098ff 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: brillo 9s linear infinite;
   }
-  h1 span { color: var(--muted); }
+  @keyframes brillo { to { background-position: -200% 0; } }
+  .sub {
+    margin: 0 auto;
+    max-width: 520px;
+    font: 500 clamp(0.95rem, 2vw, 1.1rem)/1.5 var(--ui);
+    color: var(--tenue);
+  }
 
-  /* La hoja: es la zona de soltar y el objeto de la página. Esquina doblada con clip-path. */
-  .sheet {
-    --fold: 46px;
+  /* Zona de soltar: una hoja A4 en cristal oscuro */
+  .hoja {
     position: relative;
-    height: min(58vh, 640px);
-    min-height: 400px;
+    height: min(47vh, 500px);
+    min-height: 340px;
     aspect-ratio: 210 / 297;
     max-width: 100%;
-    background: var(--paper);
-    color: var(--paper-ink);
-    clip-path: polygon(0 0, calc(100% - var(--fold)) 0, 100% var(--fold), 100% 100%, 0 100%);
-    transform: rotate(-1.6deg);
-    transition: transform .35s cubic-bezier(.2,.8,.2,1), background-color .25s;
+    display: grid;
+    padding: 28px;
+    border-radius: 14px;
+    border: 1px solid var(--borde);
+    background: rgba(255, 255, 255, 0.03);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     cursor: pointer;
+    transition: border-color .3s ease, background-color .3s ease;
+  }
+  .hoja:hover, body.dragging .hoja { border-color: rgba(147, 197, 253, 0.5); background: rgba(147, 197, 253, 0.05); }
+  .hoja:has(input:focus-visible) { outline: 2px solid var(--azul); outline-offset: 4px; }
+  .hoja input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+  .reposo { align-self: center; display: grid; justify-items: center; gap: 14px; }
+  .reposo svg { color: var(--azul); }
+  .reposo strong { font: 600 1.25rem/1.2 var(--ui); color: #fff; }
+  .reposo p { margin: 0; color: var(--tenue); font-size: 0.95rem; }
+  .error { color: #fca5a5 !important; font-weight: 700; }
+
+  .resultado { display: none; align-content: start; gap: 18px; text-align: left; }
+  body.done .reposo { display: none; }
+  body.done .resultado { display: grid; }
+  body.done main { padding-top: clamp(20px, 4vh, 44px); gap: clamp(20px, 3.5vh, 36px); }
+  body.done .hoja { height: auto; aspect-ratio: auto; width: min(100%, 460px); min-height: 0; }
+
+  .paginas {
     display: grid;
-    /* el texto queda muy por debajo del corte de la esquina */
-    padding: calc(var(--fold) + 22px) clamp(22px, 6%, 40px) clamp(22px, 6%, 36px);
-    filter: drop-shadow(0 3px 2px rgba(6, 12, 8, .45));
-  }
-  .sheet::after { /* el pliegue */
-    content: "";
-    position: absolute;
-    top: 0; right: 0;
-    width: var(--fold); height: var(--fold);
-    background: linear-gradient(225deg, transparent 50%, #c9d1c1 50%, #dfe5d8 100%);
-  }
-  .sheet:hover, .sheet:focus-within, body.dragging .sheet { transform: rotate(0deg); }
-  body.dragging .sheet { background: #fff; }
-  .sheet input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-  .sheet:has(input:focus-visible) { box-shadow: inset 0 0 0 3px var(--press); }
-
-  .idle { align-self: center; text-align: center; }
-  .idle strong {
-    display: block;
-    font: 400 clamp(30px, 5.4vw, 52px)/1 var(--display);
-    letter-spacing: 0.02em;
-  }
-  .idle p { margin: 14px 0 0; color: var(--paper-muted); }
-
-  .result { display: none; align-content: start; gap: 18px; }
-  body.done .idle { display: none; }
-  body.done .result { display: grid; }
-  body.done .sheet { height: auto; aspect-ratio: auto; width: min(100%, 420px); min-height: 0; }
-
-  .pages {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
     gap: 8px;
   }
-  .pages i {
+  .paginas i {
     aspect-ratio: 210 / 297;
     display: grid;
     place-items: center;
-    font: 600 11px/1 system-ui, sans-serif;
+    font: 600 11px/1 var(--ui);
     font-style: normal;
     font-variant-numeric: tabular-nums;
-    background: var(--paper-ink);
-    color: var(--paper);
-    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.88);
+    color: var(--bg);
+    border-radius: 3px;
   }
-  .pages i.out {
+  .paginas i.fuera {
     background: transparent;
-    color: var(--paper-muted);
-    box-shadow: inset 0 0 0 1.5px #b9c2b1;
+    color: var(--azul);
+    box-shadow: inset 0 0 0 1px rgba(147, 197, 253, 0.45);
     text-decoration: line-through;
-    animation: fall .7s cubic-bezier(.5,0,.75,0) both;
+    animation: cae .7s cubic-bezier(.5, 0, .75, 0) both;
   }
-  @keyframes fall { from { transform: none; } to { transform: translateY(6px) rotate(9deg); } }
+  @keyframes cae { to { transform: translateY(6px) rotate(9deg); } }
 
-  .summary { margin: 0; color: var(--paper-muted); font-size: 15px; }
-  .summary b {
+  .resumen { margin: 0; color: var(--tenue); font-size: 0.95rem; }
+  .resumen b {
     display: block;
-    color: var(--paper-ink);
-    font: 400 clamp(26px, 4.4vw, 38px)/1.1 var(--display);
-    letter-spacing: 0.02em;
     margin-bottom: 6px;
+    color: #fff;
+    font: 600 clamp(1.5rem, 4vw, 2rem)/1.15 var(--ui);
   }
-  .download {
+  /* Botón principal blanco, como "Ver en GitHub" en las fichas de pgscom */
+  .descargar {
     justify-self: start;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 13px 20px;
-    border-radius: 4px;
-    background: var(--paper-ink);
-    color: var(--paper);
-    font: 600 16px/1 system-ui, sans-serif;
+    padding: 13px 26px;
+    border-radius: 6px;
+    background: #fff;
+    color: var(--bg);
+    font: 600 1rem/1 var(--ui);
     text-decoration: none;
-    transition: background-color .2s;
+    transition: background-color .25s ease;
   }
-  .download svg { transition: transform .25s cubic-bezier(.2,.8,.2,1); }
-  .download:hover { background: var(--press); }
-  .download:hover svg { transform: translateY(2px); }
-  .download:focus-visible { outline: 3px solid var(--press); outline-offset: 3px; }
-  .again { margin: 0; font-size: 14px; color: var(--paper-muted); }
-
-  .error { color: #8a2c1d; font-weight: 600; margin: 14px 0 0; }
+  .descargar svg { transition: transform .25s cubic-bezier(.2, .8, .2, 1); }
+  .descargar:hover { background: #dbeafe; }
+  .descargar:hover svg { transform: translateY(2px); }
+  .descargar:focus-visible { outline: 2px solid var(--azul); outline-offset: 3px; }
+  .otra { margin: 0; font-size: 0.85rem; color: var(--tenue); }
 
   footer {
-    width: 100%;
-    max-width: 980px;
     padding: 0 0 28px;
     text-align: center;
-    color: var(--muted);
-    font-size: 14px;
+    font: 500 0.85rem/1.5 var(--ui);
+    color: rgba(255, 255, 255, 0.45);
   }
   @media (max-width: 520px) {
-    .sheet { --fold: 34px; width: 100%; height: auto; aspect-ratio: auto; min-height: 420px; }
+    .hoja { width: 100%; height: auto; aspect-ratio: auto; min-height: 360px; padding: 22px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .sheet, .download svg { transition: none; }
-    .pages i.out { animation: none; transform: translateY(6px) rotate(9deg); }
+    h1 { animation: none; }
+    .paginas i.fuera { animation: none; transform: translateY(6px) rotate(9deg); }
   }
 </style>
 </head>
 <body>
 <main>
-  <h1>Apuntes de Wuolah, <span>sin anuncios.</span></h1>
+  <header>
+    <h1>Wuolah sin anuncios</h1>
+    <p class="sub">Quita banners, portada y páginas de publicidad de tus apuntes, sin perder calidad.</p>
+  </header>
 
-  <label class="sheet" id="sheet">
+  <label class="hoja">
     <input type="file" id="file" accept="application/pdf,.pdf">
-    <div class="idle">
+    <div class="reposo">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 5H11a3 3 0 0 0-3 3v24a3 3 0 0 0 3 3h18a3 3 0 0 0 3-3V14z"/><path d="M23 5v9h9M20 29V19M15.5 23.5 20 19l4.5 4.5"/></svg>
       <strong>Suelta aquí el PDF</strong>
       <p>o haz clic para elegirlo</p>
       <p class="error" id="error" role="alert" hidden></p>
     </div>
-    <div class="result" aria-live="polite">
-      <div class="pages" id="pages"></div>
-      <p class="summary" id="summary"></p>
-      <a class="download" id="download" href="#">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5v8.5M5 7.5 9 11.5l4-4M3 15.5h12"/></svg>
+    <div class="resultado" aria-live="polite">
+      <div class="paginas" id="pages"></div>
+      <p class="resumen" id="summary"></p>
+      <a class="descargar" id="download" href="#">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5v8.5M5 7.5 9 11.5l4-4M3 15.5h12"/></svg>
         Descargar PDF limpio
       </a>
-      <p class="again">Haz clic en la hoja o suelta otro PDF para seguir.</p>
+      <p class="otra">Haz clic en la hoja o suelta otro PDF para seguir.</p>
     </div>
   </label>
 </main>
@@ -208,7 +210,7 @@
       const r = await premiumize(new Uint8Array(await file.arrayBuffer()), PDFLib);
       const kept = new Set(r.kept);
       $('pages').innerHTML = Array.from({ length: r.total }, (_, i) =>
-        `<i class="${kept.has(i) ? '' : 'out'}" style="animation-delay:${i * 25}ms">${i + 1}</i>`).join('');
+        `<i class="${kept.has(i) ? '' : 'fuera'}" style="animation-delay:${i * 25}ms">${i + 1}</i>`).join('');
       const gone = r.total - r.kept.length;
       $('summary').innerHTML = `<b>${r.total} páginas → ${r.kept.length}</b>` +
         `${gone} ${gone === 1 ? 'página fuera' : 'páginas fuera'} (portada y anuncios). ` +
