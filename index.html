@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wuolah sin anuncios</title>
+<meta name="description" content="Quita los anuncios de los PDF gratuitos de Wuolah. Todo ocurre en tu navegador.">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=tanker@400&display=swap">
+<style>
+  :root {
+    --ground: #101a14;
+    --ground-lit: #1b2b21;
+    --ink: #e6ece1;
+    --muted: #93a58d;
+    --paper: #eef1e8;
+    --paper-ink: #14201a;
+    --paper-muted: #5d6e5f;
+    --press: #2b4a37;
+    --display: "Tanker", "Arial Black", Impact, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    background-color: var(--ground);
+    /* luz rasante desde arriba a la izquierda + grano para que no haga bandas */
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(160deg, var(--ground-lit) 0%, var(--ground) 55%);
+    display: grid;
+    grid-template-rows: 1fr auto;
+    justify-items: center;
+    padding: 0 16px;
+    overflow-x: hidden;
+  }
+  main {
+    width: 100%;
+    max-width: 980px;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: clamp(24px, 4vh, 40px);
+    padding: clamp(24px, 5vh, 56px) 0 20px;
+  }
+  h1 {
+    margin: 0;
+    font: 400 clamp(40px, 7.4vw, 92px)/0.95 var(--display);
+    letter-spacing: 0.01em;
+    text-align: center;
+    text-wrap: balance;
+  }
+  h1 span { color: var(--muted); }
+
+  /* La hoja: es la zona de soltar y el objeto de la página. Esquina doblada con clip-path. */
+  .sheet {
+    --fold: 46px;
+    position: relative;
+    height: min(58vh, 640px);
+    min-height: 400px;
+    aspect-ratio: 210 / 297;
+    max-width: 100%;
+    background: var(--paper);
+    color: var(--paper-ink);
+    clip-path: polygon(0 0, calc(100% - var(--fold)) 0, 100% var(--fold), 100% 100%, 0 100%);
+    transform: rotate(-1.6deg);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), background-color .25s;
+    cursor: pointer;
+    display: grid;
+    /* el texto queda muy por debajo del corte de la esquina */
+    padding: calc(var(--fold) + 22px) clamp(22px, 6%, 40px) clamp(22px, 6%, 36px);
+    filter: drop-shadow(0 3px 2px rgba(6, 12, 8, .45));
+  }
+  .sheet::after { /* el pliegue */
+    content: "";
+    position: absolute;
+    top: 0; right: 0;
+    width: var(--fold); height: var(--fold);
+    background: linear-gradient(225deg, transparent 50%, #c9d1c1 50%, #dfe5d8 100%);
+  }
+  .sheet:hover, .sheet:focus-within, body.dragging .sheet { transform: rotate(0deg); }
+  body.dragging .sheet { background: #fff; }
+  .sheet input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .sheet:has(input:focus-visible) { box-shadow: inset 0 0 0 3px var(--press); }
+
+  .idle { align-self: center; text-align: center; }
+  .idle strong {
+    display: block;
+    font: 400 clamp(30px, 5.4vw, 52px)/1 var(--display);
+    letter-spacing: 0.02em;
+  }
+  .idle p { margin: 14px 0 0; color: var(--paper-muted); }
+
+  .result { display: none; align-content: start; gap: 18px; }
+  body.done .idle { display: none; }
+  body.done .result { display: grid; }
+  body.done .sheet { height: auto; aspect-ratio: auto; width: min(100%, 420px); min-height: 0; }
+
+  .pages {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+    gap: 8px;
+  }
+  .pages i {
+    aspect-ratio: 210 / 297;
+    display: grid;
+    place-items: center;
+    font: 600 11px/1 system-ui, sans-serif;
+    font-style: normal;
+    font-variant-numeric: tabular-nums;
+    background: var(--paper-ink);
+    color: var(--paper);
+    border-radius: 2px;
+  }
+  .pages i.out {
+    background: transparent;
+    color: var(--paper-muted);
+    box-shadow: inset 0 0 0 1.5px #b9c2b1;
+    text-decoration: line-through;
+    animation: fall .7s cubic-bezier(.5,0,.75,0) both;
+  }
+  @keyframes fall { from { transform: none; } to { transform: translateY(6px) rotate(9deg); } }
+
+  .summary { margin: 0; color: var(--paper-muted); font-size: 15px; }
+  .summary b {
+    display: block;
+    color: var(--paper-ink);
+    font: 400 clamp(26px, 4.4vw, 38px)/1.1 var(--display);
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+  }
+  .download {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 20px;
+    border-radius: 4px;
+    background: var(--paper-ink);
+    color: var(--paper);
+    font: 600 16px/1 system-ui, sans-serif;
+    text-decoration: none;
+    transition: background-color .2s;
+  }
+  .download svg { transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+  .download:hover { background: var(--press); }
+  .download:hover svg { transform: translateY(2px); }
+  .download:focus-visible { outline: 3px solid var(--press); outline-offset: 3px; }
+  .again { margin: 0; font-size: 14px; color: var(--paper-muted); }
+
+  .error { color: #8a2c1d; font-weight: 600; margin: 14px 0 0; }
+
+  footer {
+    width: 100%;
+    max-width: 980px;
+    padding: 0 0 28px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  @media (max-width: 520px) {
+    .sheet { --fold: 34px; width: 100%; height: auto; aspect-ratio: auto; min-height: 420px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sheet, .download svg { transition: none; }
+    .pages i.out { animation: none; transform: translateY(6px) rotate(9deg); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Apuntes de Wuolah, <span>sin anuncios.</span></h1>
+
+  <label class="sheet" id="sheet">
+    <input type="file" id="file" accept="application/pdf,.pdf">
+    <div class="idle">
+      <strong>Suelta aquí el PDF</strong>
+      <p>o haz clic para elegirlo</p>
+      <p class="error" id="error" role="alert" hidden></p>
+    </div>
+    <div class="result" aria-live="polite">
+      <div class="pages" id="pages"></div>
+      <p class="summary" id="summary"></p>
+      <a class="download" id="download" href="#">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5v8.5M5 7.5 9 11.5l4-4M3 15.5h12"/></svg>
+        Descargar PDF limpio
+      </a>
+      <p class="again">Haz clic en la hoja o suelta otro PDF para seguir.</p>
+    </div>
+  </label>
+</main>
+<footer>Todo ocurre en tu navegador: el PDF no se sube a ningún sitio.</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="premiumize.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let url;
+
+  async function handle(file) {
+    if (!file) return;
+    const err = $('error');
+    err.hidden = true;
+    document.body.classList.remove('done');
+    try {
+      const r = await premiumize(new Uint8Array(await file.arrayBuffer()), PDFLib);
+      const kept = new Set(r.kept);
+      $('pages').innerHTML = Array.from({ length: r.total }, (_, i) =>
+        `<i class="${kept.has(i) ? '' : 'out'}" style="animation-delay:${i * 25}ms">${i + 1}</i>`).join('');
+      const gone = r.total - r.kept.length;
+      $('summary').innerHTML = `<b>${r.total} páginas → ${r.kept.length}</b>` +
+        `${gone} ${gone === 1 ? 'página fuera' : 'páginas fuera'} (portada y anuncios). ` +
+        `Banners, marcas y enlaces de tracking quitados del resto.`;
+      if (url) URL.revokeObjectURL(url);
+      url = URL.createObjectURL(new Blob([r.bytes], { type: 'application/pdf' }));
+      const a = $('download');
+      a.href = url;
+      a.download = file.name.replace(/\.pdf$/i, '') + '-sin-anuncios.pdf';
+      document.body.classList.add('done');
+    } catch (e) {
+      console.error(e);
+      err.textContent = /Wuolah|contenido/.test(e.message) ? e.message : 'No se ha podido leer ese PDF.';
+      err.hidden = false;
+    }
+  }
+
+  $('file').addEventListener('change', (e) => { handle(e.target.files[0]); e.target.value = ''; });
+  let depth = 0;
+  addEventListener('dragenter', (e) => { e.preventDefault(); depth++; document.body.classList.add('dragging'); });
+  addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; document.body.classList.remove('dragging'); } });
+  addEventListener('dragover', (e) => e.preventDefault());
+  addEventListener('drop', (e) => {
+    e.preventDefault();
+    depth = 0;
+    document.body.classList.remove('dragging');
+    handle(e.dataTransfer.files[0]);
+  });
+</script>
+</body>
+</html>
